@@ -13,7 +13,9 @@ let busy = false;
 let soundEnabled = false;
 
 async function api(path, body) {
-  const response = await fetch(path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', ...(tg?.initData ? { 'X-Telegram-Init-Data': tg.initData } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const telegramState = !tg ? 'sdk_missing' : tg.initData ? 'init_data_present' : 'init_data_empty';
+  const headers = { 'Content-Type': 'application/json', 'X-Telegram-WebApp-State': telegramState, ...(tg?.version ? { 'X-Telegram-WebApp-Version': String(tg.version) } : {}), ...(tg?.initData ? { 'X-Telegram-Init-Data': tg.initData } : {}) };
+  const response = await fetch(path, { method: body ? 'POST' : 'GET', headers, body: body ? JSON.stringify(body) : undefined });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Ошибка связи с сервером.');
   return data;

@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -86,13 +86,24 @@ function validateTelegramUser(initData) {
   } catch { return { user: null, reason: 'user_invalid_json' }; }
 }
 
-function getIdentity(req, url) {
-  const validation = validateTelegramUser(req.headers['x-telegram-init-data']);
+function getIdentity(req, url, requestId) {
+  const initData = req.headers['x-telegram-init-data'];
+  const validation = validateTelegramUser(initData);
   const user = validation.user;
   if (user?.id) return { id: `tg:${user.id}`, displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'Наёмник' };
   if (!production && !botToken) return { id: 'dev:local', displayName: 'Локальный наёмник' };
   if (!production && url.searchParams.get('dev') === '1') return { id: 'dev:local', displayName: 'Локальный наёмник' };
-  console.warn(`[auth] Telegram initData rejected: ${validation.reason}`);
+  const rawClientState = req.headers['x-telegram-webapp-state'];
+  const rawWebAppVersion = req.headers['x-telegram-webapp-version'];
+  const clientState = typeof rawClientState === 'string' && /^[a-z_]{1,32}$/.test(rawClientState) ? rawClientState : 'not_reported';
+  const webAppVersion = typeof rawWebAppVersion === 'string' && /^[0-9.]{1,20}$/.test(rawWebAppVersion) ? rawWebAppVersion : null;
+  const userAgent = req.headers['user-agent'] || '';
+  console.warn(JSON.stringify({
+    event: 'telegram_auth_rejected', requestId, reason: validation.reason,
+    initDataHeaderPresent: typeof initData === 'string' && initData.length > 0,
+    initDataLength: typeof initData === 'string' ? initData.length : 0,
+    clientState, webAppVersion, telegramUserAgent: /telegram/i.test(userAgent),
+  }));
   return null;
 }
 
@@ -128,8 +139,12 @@ function resolveOption(player, scene, option) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const requestId = randomUUID();
+  const startedAt = Date.now();
+  res.setHeader('X-Request-Id', requestId);
+  res.on('finish', () => console.log(JSON.stringify({ event: 'http_request', requestId, method: req.method, path: url.pathname, status: res.statusCode, durationMs: Date.now() - startedAt })));
   if (url.pathname.startsWith('/api/')) {
-    const identity = getIdentity(req, url);
+    const identity = getIdentity(req, url, requestId);
     if (!identity) return json(res, 401, { error: 'Открой игру через Telegram Mini App.' });
     const player = getPlayer(identity);
     try {
