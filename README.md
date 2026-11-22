@@ -10,7 +10,7 @@ A PvE-first cyberpunk RPG built as a Telegram Mini App. The first playable slice
 - `npm start`
 - Open `http://localhost:3000` in a browser. Outside Telegram, the server creates a local development profile.
 
-For Telegram authentication, set `BOT_TOKEN` in the environment and expose this server over HTTPS, then configure its URL as the Mini App URL with BotFather. The backend validates the signed `Telegram.WebApp.initData`; it never trusts a Telegram user object supplied by the client. Dev authentication is disabled when `NODE_ENV=production`.
+For Telegram authentication, add your bot token to `.env` as `BOT_TOKEN=...`, expose this server over HTTPS, then configure its URL as the Mini App URL with BotFather. `npm start` loads `.env` automatically. The backend validates the signed `Telegram.WebApp.initData`; it never trusts a Telegram user object supplied by the client. Dev authentication is disabled when `NODE_ENV=production`.
 
 The server stores profiles in `data/players.json`. This is suitable for local prototyping; use a transactional database before running multiple server instances or accepting real player contracts.
 
