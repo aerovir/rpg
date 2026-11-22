@@ -1,4 +1,4 @@
-# Game Design Brief — v0.1
+# Нижний контур — Game Design Brief v0.1
 
 ## High concept
 

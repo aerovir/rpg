@@ -1,4 +1,6 @@
-# Cyberpunk Telegram RPG
+# Нижний контур
+
+Киберпанк-RPG для Telegram Mini App.
 
 A PvE-first cyberpunk RPG built as a Telegram Mini App. The first playable slice has a short server-resolved mission, three character builds, persistent local profiles, and Telegram `initData` authentication.
 
