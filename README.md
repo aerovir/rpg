@@ -18,7 +18,7 @@ The server stores profiles in `data/players.json`. This is suitable for local pr
 
 ## VDS deployment
 
-The production Compose override joins the existing reverse-proxy network on the VDS. Copy the project files and `.env` to the deployment directory, then run `docker compose -f compose.yaml -f compose.vds.yaml up -d --build`. The reverse proxy can reach the app at `http://nizhniy-kontur:3000`. Configure a dedicated HTTPS hostname and point it to that upstream before setting the Mini App URL in BotFather.
+The production Compose override joins the existing reverse-proxy network on the VDS. Copy the project files and `.env` to the deployment directory, then run `docker compose -f compose.yaml -f compose.vds.yaml up -d --build`. The reverse proxy can reach the app at `http://nizhniy-kontur:3000`. For temporary Telegram testing, `deploy/nginx-ip.conf` configures the VDS IP endpoint. IP certificates from Let's Encrypt expire after 160 hours, so use the isolated renewal config and timer in `deploy/nizhniy-kontur-certbot.{service,timer}`; the sync script installs renewed files for Nginx. A DNS hostname is simpler for long-term use.
 
 ## Playable slice
 

@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew the Nizhniy Kontur IP TLS certificate
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker run --rm --name nizhniy-kontur-certbot-renew --volume /etc/letsencrypt-nizhniy-kontur:/etc/letsencrypt --volume /var/www/certbot:/var/www/certbot --volume /var/lib/letsencrypt-nizhniy-kontur:/var/lib/letsencrypt certbot/certbot:latest renew --cert-name nizhniy-kontur-ip --quiet --no-directory-hooks
+ExecStartPost=/home/user/nizhniy-kontur/deploy/sync-ip-cert.sh
+TimeoutStartSec=20min
