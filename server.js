@@ -64,27 +64,35 @@ function safeEqual(a, b) {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-function telegramUser(initData) {
-  if (!botToken || !initData) return null;
+function validateTelegramUser(initData) {
+  if (!botToken) return { user: null, reason: 'bot_token_missing' };
+  if (!initData) return { user: null, reason: 'init_data_missing' };
   const params = new URLSearchParams(initData);
   const receivedHash = params.get('hash');
-  if (!receivedHash || !/^[a-f0-9]{64}$/i.test(receivedHash)) return null;
+  if (!receivedHash || !/^[a-f0-9]{64}$/i.test(receivedHash)) return { user: null, reason: 'hash_missing_or_invalid' };
   params.delete('hash');
-  params.delete('signature');
-  const dataCheck = [...params.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => `${key}=${value}`).join('\n');
+  const dataCheck = [...params.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n');
   const secret = createHmac('sha256', 'WebAppData').update(botToken).digest();
   const expected = createHmac('sha256', secret).update(dataCheck).digest('hex');
-  if (!safeEqual(expected, receivedHash.toLowerCase())) return null;
+  if (!safeEqual(expected, receivedHash.toLowerCase())) return { user: null, reason: 'hash_mismatch' };
   const authDate = Number(params.get('auth_date'));
-  if (!Number.isFinite(authDate) || Math.abs(Date.now() / 1000 - authDate) > 86400) return null;
-  try { return JSON.parse(params.get('user') || 'null'); } catch { return null; }
+  if (!Number.isFinite(authDate) || Math.abs(Date.now() / 1000 - authDate) > 86400) return { user: null, reason: 'auth_date_invalid_or_expired' };
+  try {
+    const user = JSON.parse(params.get('user') || 'null');
+    return user?.id ? { user, reason: null } : { user: null, reason: 'user_missing' };
+  } catch { return { user: null, reason: 'user_invalid_json' }; }
 }
 
 function getIdentity(req, url) {
-  const user = telegramUser(req.headers['x-telegram-init-data']);
+  const validation = validateTelegramUser(req.headers['x-telegram-init-data']);
+  const user = validation.user;
   if (user?.id) return { id: `tg:${user.id}`, displayName: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'Наёмник' };
   if (!production && !botToken) return { id: 'dev:local', displayName: 'Локальный наёмник' };
   if (!production && url.searchParams.get('dev') === '1') return { id: 'dev:local', displayName: 'Локальный наёмник' };
+  console.warn(`[auth] Telegram initData rejected: ${validation.reason}`);
   return null;
 }
 
