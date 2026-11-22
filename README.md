@@ -1,20 +1,25 @@
 # Cyberpunk Telegram RPG
 
-PvE-first cyberpunk RPG designed as a Telegram Mini App. The project starts with short missions, a compact story, character progression through software and implants, and player-created contracts.
+A PvE-first cyberpunk RPG built as a Telegram Mini App. The first playable slice has a short server-resolved mission, three character builds, persistent local profiles, and Telegram `initData` authentication.
 
-## Current direction
+## Run locally
 
-- Short sessions: approximately 3–7 minutes per mission.
-- PvE is the initial focus; direct PvP is out of scope for the first MVP.
-- Players improve a mercenary using software and cybernetic implants.
-- Stronger loadouts can unlock higher-risk missions with better rewards.
-- Players can publish contracts for other players using validated mission templates.
-- The first version uses a closed in-game currency with no cash-out.
+- Node.js 20 or newer
+- `npm start`
+- Open `http://localhost:3000` in a browser. Outside Telegram, the server creates a local development profile.
+
+For Telegram authentication, set `BOT_TOKEN` in the environment and expose this server over HTTPS, then configure its URL as the Mini App URL with BotFather. The backend validates the signed `Telegram.WebApp.initData`; it never trusts a Telegram user object supplied by the client. Dev authentication is disabled when `NODE_ENV=production`.
+
+The server stores profiles in `data/players.json`. This is suitable for local prototyping; use a transactional database before running multiple server instances or accepting real player contracts.
+
+## Playable slice
+
+- Pick Netrunner, Ghost, or Enforcer.
+- Start the “Ghost in the Wire” data-retrieval mission.
+- Resolve approach, encounter, and extraction choices on the server.
+- Earn credits, experience, and reputation; the profile persists across reloads.
+- Install the Synapse Key implant to alter available outcomes.
 
 ## Project documents
 
 - [Game concept and MVP](docs/game-design.md)
-
-## Status
-
-Pre-production. This repository currently contains the initial product and game-design brief. Implementation choices for the Mini App client, backend, and persistence will be made before the first playable build.

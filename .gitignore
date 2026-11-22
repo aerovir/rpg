@@ -3,6 +3,7 @@ node_modules/
 dist/
 build/
 .next/
+data/
 
 # Local environment and secrets
 .env
