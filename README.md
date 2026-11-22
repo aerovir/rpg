@@ -10,9 +10,15 @@ A PvE-first cyberpunk RPG built as a Telegram Mini App. The first playable slice
 - `npm start`
 - Open `http://localhost:3000` in a browser. Outside Telegram, the server creates a local development profile.
 
+Docker: `docker compose up -d --build`; the app listens on `http://127.0.0.1:3005` and keeps player data in a named volume.
+
 For Telegram authentication, add your bot token to `.env` as `BOT_TOKEN=...`, expose this server over HTTPS, then configure its URL as the Mini App URL with BotFather. `npm start` loads `.env` automatically. The backend validates the signed `Telegram.WebApp.initData`; it never trusts a Telegram user object supplied by the client. Dev authentication is disabled when `NODE_ENV=production`.
 
 The server stores profiles in `data/players.json`. This is suitable for local prototyping; use a transactional database before running multiple server instances or accepting real player contracts.
+
+## VDS deployment
+
+The production Compose override joins the existing reverse-proxy network on the VDS. Copy the project files and `.env` to the deployment directory, then run `docker compose -f compose.yaml -f compose.vds.yaml up -d --build`. The reverse proxy can reach the app at `http://nizhniy-kontur:3000`. Configure a dedicated HTTPS hostname and point it to that upstream before setting the Mini App URL in BotFather.
 
 ## Playable slice
 

@@ -1,0 +1,10 @@
+services:
+  app:
+    networks:
+      - default
+      - ticketsellbot_default
+
+networks:
+  ticketsellbot_default:
+    external: true
+    name: ticketsellbot_default
